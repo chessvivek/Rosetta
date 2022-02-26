@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -87,46 +88,89 @@ public class RosettaBinderTest {
     String typedJson = "{\"generalValue\":\"general\",\"concreteValue\":\"concrete\",\"type\":\"concrete\"}";
     List<Byte> bytes = toList(json.getBytes(StandardCharsets.UTF_8));
 
-    assertThat(bind(bean)).isEqualTo(map(
-            "annotatedField", json,
-            "annotatedGetter", json,
-            "annotatedSetter", json,
-            "annotatedFieldWithDefault", json,
-            "annotatedGetterWithDefault", json,
-            "annotatedSetterWithDefault", json,
-            "optionalField", json,
-            "optionalGetter", json,
-            "optionalSetter", json,
-            "binaryField", bytes,
-            "binaryFieldWithDefault", bytes,
-            "jsonNodeField", json,
-            "optionalTypeInfoField", typedJson,
-            "optionalTypeInfoGetter", typedJson,
-            "optionalTypeInfoSetter", typedJson,
-            "typeInfoField", typedJson,
-            "typeInfoGetter", typedJson,
-            "typeInfoSetter", typedJson
-    ));
-    assertThat(bindWithPrefix("prefix", bean)).isEqualTo(map(
-            "prefix.annotatedField", json,
-            "prefix.annotatedGetter", json,
-            "prefix.annotatedSetter", json,
-            "prefix.annotatedFieldWithDefault", json,
-            "prefix.annotatedGetterWithDefault", json,
-            "prefix.annotatedSetterWithDefault", json,
-            "prefix.optionalField", json,
-            "prefix.optionalGetter", json,
-            "prefix.optionalSetter", json,
-            "prefix.binaryField", bytes,
-            "prefix.binaryFieldWithDefault", bytes,
-            "prefix.jsonNodeField", json,
-            "prefix.optionalTypeInfoField", typedJson,
-            "prefix.optionalTypeInfoGetter", typedJson,
-            "prefix.optionalTypeInfoSetter", typedJson,
-            "prefix.typeInfoField", typedJson,
-            "prefix.typeInfoGetter", typedJson,
-            "prefix.typeInfoSetter", typedJson
-    ));
+    Map<String, Object> BeanMap = bind(bean);
+    assertThat(BeanMap.get("annotatedField")).isEqualTo(json);
+    assertThat(BeanMap.get("annotatedGetter")).isEqualTo(json);
+    assertThat(BeanMap.get("annotatedSetter")).isEqualTo(json);
+    assertThat(BeanMap.get("annotatedFieldWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("annotatedGetterWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("annotatedSetterWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("optionalField")).isEqualTo(json);
+    assertThat(BeanMap.get("optionalGetter")).isEqualTo(json);
+    assertThat(BeanMap.get("optionalSetter")).isEqualTo(json);
+    assertThat(BeanMap.get("binaryField")).isEqualTo(bytes);
+    assertThat(BeanMap.get("binaryFieldWithDefault")).isEqualTo(bytes);
+    assertThat(BeanMap.get("jsonNodeField")).isEqualTo(json);
+
+    JSONAssert.assertEquals(BeanMap.get("optionalTypeInfoField").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("optionalTypeInfoGetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("optionalTypeInfoSetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("typeInfoField").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("typeInfoGetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("typeInfoSetter").toString(), typedJson, false);
+
+    // assertThat(bind(bean)).isEqualTo(map(
+    //         "annotatedField", json,
+    //         "annotatedGetter", json,
+    //         "annotatedSetter", json,
+    //         "annotatedFieldWithDefault", json,
+    //         "annotatedGetterWithDefault", json,
+    //         "annotatedSetterWithDefault", json,
+    //         "optionalField", json,
+    //         "optionalGetter", json,
+    //         "optionalSetter", json,
+    //         "binaryField", bytes,
+    //         "binaryFieldWithDefault", bytes,
+    //         "jsonNodeField", json,
+    //         "optionalTypeInfoField", typedJson,
+    //         "optionalTypeInfoGetter", typedJson,
+    //         "optionalTypeInfoSetter", typedJson,
+    //         "typeInfoField", typedJson,
+    //         "typeInfoGetter", typedJson,
+    //         "typeInfoSetter", typedJson
+    // ));
+
+    BeanMap = bindWithPrefix("prefix", bean);
+    assertThat(BeanMap.get("prefix.annotatedField")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.annotatedGetter")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.annotatedSetter")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.annotatedFieldWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.annotatedGetterWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.annotatedSetterWithDefault")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.optionalField")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.optionalGetter")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.optionalSetter")).isEqualTo(json);
+    assertThat(BeanMap.get("prefix.binaryField")).isEqualTo(bytes);
+    assertThat(BeanMap.get("prefix.binaryFieldWithDefault")).isEqualTo(bytes);
+    assertThat(BeanMap.get("prefix.jsonNodeField")).isEqualTo(json);
+
+    JSONAssert.assertEquals(BeanMap.get("prefix.optionalTypeInfoField").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("prefix.optionalTypeInfoGetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("prefix.optionalTypeInfoSetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("prefix.typeInfoField").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("prefix.typeInfoGetter").toString(), typedJson, false);
+    JSONAssert.assertEquals(BeanMap.get("prefix.typeInfoSetter").toString(), typedJson, false);
+
+    // assertThat(bindWithPrefix("prefix", bean)).isEqualTo(map(
+    //         "prefix.annotatedField", json,
+    //         "prefix.annotatedGetter", json,
+    //         "prefix.annotatedSetter", json,
+    //         "prefix.annotatedFieldWithDefault", json,
+    //         "prefix.annotatedGetterWithDefault", json,
+    //         "prefix.annotatedSetterWithDefault", json,
+    //         "prefix.optionalField", json,
+    //         "prefix.optionalGetter", json,
+    //         "prefix.optionalSetter", json,
+    //         "prefix.binaryField", bytes,
+    //         "prefix.binaryFieldWithDefault", bytes,
+    //         "prefix.jsonNodeField", json,
+    //         "prefix.optionalTypeInfoField", typedJson,
+    //         "prefix.optionalTypeInfoGetter", typedJson,
+    //         "prefix.optionalTypeInfoSetter", typedJson,
+    //         "prefix.typeInfoField", typedJson,
+    //         "prefix.typeInfoGetter", typedJson,
+    //         "prefix.typeInfoSetter", typedJson
+    // ));
   }
 
   @Test
