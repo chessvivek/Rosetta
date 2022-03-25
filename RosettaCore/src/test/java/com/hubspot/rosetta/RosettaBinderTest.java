@@ -2,6 +2,7 @@ package com.hubspot.rosetta;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Optional;
 import com.hubspot.rosetta.RosettaBinder.Callback;
@@ -87,46 +89,47 @@ public class RosettaBinderTest {
     String typedJson = "{\"generalValue\":\"general\",\"concreteValue\":\"concrete\",\"type\":\"concrete\"}";
     List<Byte> bytes = toList(json.getBytes(StandardCharsets.UTF_8));
 
-    assertThat(bind(bean)).isEqualTo(map(
-            "annotatedField", json,
-            "annotatedGetter", json,
-            "annotatedSetter", json,
-            "annotatedFieldWithDefault", json,
-            "annotatedGetterWithDefault", json,
-            "annotatedSetterWithDefault", json,
-            "optionalField", json,
-            "optionalGetter", json,
-            "optionalSetter", json,
-            "binaryField", bytes,
-            "binaryFieldWithDefault", bytes,
-            "jsonNodeField", json,
-            "optionalTypeInfoField", typedJson,
-            "optionalTypeInfoGetter", typedJson,
-            "optionalTypeInfoSetter", typedJson,
-            "typeInfoField", typedJson,
-            "typeInfoGetter", typedJson,
-            "typeInfoSetter", typedJson
-    ));
-    assertThat(bindWithPrefix("prefix", bean)).isEqualTo(map(
-            "prefix.annotatedField", json,
-            "prefix.annotatedGetter", json,
-            "prefix.annotatedSetter", json,
-            "prefix.annotatedFieldWithDefault", json,
-            "prefix.annotatedGetterWithDefault", json,
-            "prefix.annotatedSetterWithDefault", json,
-            "prefix.optionalField", json,
-            "prefix.optionalGetter", json,
-            "prefix.optionalSetter", json,
-            "prefix.binaryField", bytes,
-            "prefix.binaryFieldWithDefault", bytes,
-            "prefix.jsonNodeField", json,
-            "prefix.optionalTypeInfoField", typedJson,
-            "prefix.optionalTypeInfoGetter", typedJson,
-            "prefix.optionalTypeInfoSetter", typedJson,
-            "prefix.typeInfoField", typedJson,
-            "prefix.typeInfoGetter", typedJson,
-            "prefix.typeInfoSetter", typedJson
-    ));
+    Map<String, Object> beanMap = bind(bean);
+    compareField(beanMap, "annotatedField", json);
+    compareField(beanMap, "annotatedGetter", json);
+    compareField(beanMap, "annotatedSetter", json);
+    compareField(beanMap, "annotatedFieldWithDefault", json);
+    compareField(beanMap, "annotatedGetterWithDefault", json);
+    compareField(beanMap, "annotatedSetterWithDefault", json);
+    compareField(beanMap, "optionalField", json);
+    compareField(beanMap, "optionalGetter", json);
+    compareField(beanMap, "optionalSetter", json);
+    assertThat(beanMap.get("binaryField")).isEqualTo(bytes);
+    assertThat(beanMap.get("binaryFieldWithDefault")).isEqualTo(bytes);
+    compareField(beanMap, "jsonNodeField", json);
+    compareField(beanMap, "optionalTypeInfoField", typedJson);
+    compareField(beanMap, "optionalTypeInfoGetter", typedJson);
+    compareField(beanMap, "optionalTypeInfoSetter", typedJson);
+    compareField(beanMap, "typeInfoField", typedJson);
+    compareField(beanMap, "typeInfoGetter", typedJson);
+    compareField(beanMap, "typeInfoSetter", typedJson);
+    assertThat(beanMap.keySet().size()).isEqualTo(18);
+
+    beanMap = bindWithPrefix("prefix", bean);
+    compareField(beanMap, "prefix.annotatedField", json);
+    compareField(beanMap, "prefix.annotatedGetter", json);
+    compareField(beanMap, "prefix.annotatedSetter", json);
+    compareField(beanMap, "prefix.annotatedFieldWithDefault", json);
+    compareField(beanMap, "prefix.annotatedGetterWithDefault", json);
+    compareField(beanMap, "prefix.annotatedSetterWithDefault", json);
+    compareField(beanMap, "prefix.optionalField", json);
+    compareField(beanMap, "prefix.optionalGetter", json);
+    compareField(beanMap, "prefix.optionalSetter", json);
+    assertThat(beanMap.get("prefix.binaryField")).isEqualTo(bytes);
+    assertThat(beanMap.get("prefix.binaryFieldWithDefault")).isEqualTo(bytes);
+    compareField(beanMap, "prefix.jsonNodeField", json);
+    compareField(beanMap, "prefix.optionalTypeInfoField", typedJson);
+    compareField(beanMap, "prefix.optionalTypeInfoGetter", typedJson);
+    compareField(beanMap, "prefix.optionalTypeInfoSetter", typedJson);
+    compareField(beanMap, "prefix.typeInfoField", typedJson);
+    compareField(beanMap, "prefix.typeInfoGetter", typedJson);
+    compareField(beanMap, "prefix.typeInfoSetter", typedJson);
+    assertThat(beanMap.keySet().size()).isEqualTo(18);
   }
 
   @Test
@@ -254,5 +257,17 @@ public class RosettaBinderTest {
     }
 
     return byteList;
+  }
+
+  private void compareField(Map<String, Object> beanMap, String fieldName, String expectedJson) {
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      JsonNode expectedJsonNode = mapper.readTree(expectedJson);
+      JsonNode actualJsonNode = mapper.readTree(beanMap.get(fieldName).toString());
+      assertThat(actualJsonNode).isEqualTo(expectedJsonNode);
+    } catch (IOException e) {
+      // Parsed string is not in valid JSON format
+      assert(false);
+    }
   }
 }
